@@ -1,0 +1,42 @@
+{ config, ... }:
+
+rec {
+  User = {
+    Name = "";
+    Group = "";
+  };
+  HostName = "";
+  WiFi = {
+    Los = "pskRaw";
+    LosDose = "pskRaw";
+  };
+  Nord = {
+    username = "";
+    password = "";
+  };
+  Hosts = {
+    "127.0.0.1" = [
+      "Test.test"
+    ];
+  };
+  AddVHost = Host: {
+    listen = [ { addr = "127.0.0.1"; port = 80; } { addr = "127.0.0.1"; port = 8080; } ];
+    serverName = "${Host}.test";
+    root = "/var/www/${Host}";
+    extraConfig = ''
+	  index = index.php index.html;
+  	  error_log /var/log/nginx/${Host}/error.log debug;
+	  access_log /var/log/nginx/${Host}/access.log;
+    '';
+    locations."/".extraConfig = ''
+	  try_files $uri $uri/ /index.php?$query_string;
+    '';
+    locations."~ \.php$".extraConfig = ''
+	  fastcgi_pass  unix:${config.services.phpfpm.pools.mypool.socket};
+      fastcgi_index index.php;
+    '';
+  };
+  VHosts = {
+    "Test" = AddVHost "Test";
+  };
+}

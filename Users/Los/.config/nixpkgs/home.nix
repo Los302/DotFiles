@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 
+let
+  Loco = (import ./home_loco.nix);
+in
 {
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
@@ -18,7 +21,7 @@
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
-   home.stateVersion = "21.11";
+  home.stateVersion = "21.11";
   # To install, Run:
   # nix-channel --add https://github.com/nix-community/home-manager/archive/release-21.11.tar.gz home-manager
   # niz-channel --update
@@ -27,12 +30,10 @@
   programs.home-manager.enable = true;
 
   # Git
-  programs.git = let
-    Git = (import ./home_loco.nix).Git;
-  in {
+  programs.git = {
     enable = true;
-    userName = Git.userName;
-    userEmail = Git.userEmail;
+    userName = Loco.Git.userName;
+    userEmail = Loco.Git.userEmail;
   };
 
   home.packages = with pkgs; [

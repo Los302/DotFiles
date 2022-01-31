@@ -4,6 +4,9 @@
 
 { config, pkgs, ... }:
 
+let
+  Loco = (import ./configuration_loco.nix) { config=config; };
+in
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -24,11 +27,11 @@
     fsType = "ext4";
   };
   fileSystems."/var/www" = {
-    device = "/home/${(import ./configuration_loco.nix).UserName}/Documents/htdocs";
+    device = "/home/${Loco.User.Name}/Documents/htdocs";
     options = [ "bind" ];
   };
   fileSystems."OutHouse" = {
-    mountPoint = "/home/${(import ./configuration_loco.nix).UserName}/mnt/OutHouse";
+    mountPoint = "/home/${Loco.User.Name}/mnt/OutHouse";
     device = "/dev/disk/by-label/BigHome";
     fsType = "ext4";
     options = [ "nofail" "auto" ];
@@ -41,11 +44,11 @@
     rtl8814au
   ];
 
-  networking.hostName = (import ./configuration_loco.nix).HostName; # Define your hostname.
+  networking.hostName = Loco.HostName; # Define your hostname.
   networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.wireless.userControlled.enable = true;
   networking.wireless.networks = let
-    WiFi = (import ./configuration_loco.nix).WiFi;
+    WiFi = Loco.WiFi;
   in {
     Los = {
       pskRaw=WiFi.Los;
@@ -140,17 +143,14 @@
   # services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users."${(import ./configuration_loco.nix).UserName}" = {
+  users.users."${Loco.User.Name}" = {
     initialPassword = "Foo";
     isNormalUser = true;
+    group = Loco.User.Group;
     createHome = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "users" ]; # Enable ‘sudo’ for the user.
     shell = pkgs.zsh;
   };
-
-  # environment.sessionVariables = rec {
-  #   PATH = [ "\${HOME}/mnt/OutHouse/los/bin" ];
-  # };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -175,21 +175,9 @@
   # The Server
   services.nginx = {
     enable = true;
-    virtualHosts."Test.test" = {
-      root = "/var/www/Test";
-      extraConfig = ''
-        index = index.php;
-        error_log /var/log/nginx/Test.test/error.log debug;
-        access_log /var/log/nginx/Test.test/access.log;
-      '';
-      locations."/".extraConfig = ''
-        try_files $uri $uri/ /index.php?$query_string;
-      '';
-      locations."~ \.php$".extraConfig = ''
-        fastcgi_pass  unix:${config.services.phpfpm.pools.mypool.socket};
-        fastcgi_index index.php;
-      '';
-    };
+    user = Loco.User.Name;
+    group = Loco.User.Group;
+    virtualHosts = Loco.VHosts;
   };
   services.mysql = {
     enable = true;
@@ -204,10 +192,12 @@
     };
   in {
     phpPackage = php;
-    user = "nobody";
+    user = Loco.User.Name;
+    group = Loco.User.Group;
     settings = {
       pm = "dynamic";
-      "listen.owner" = config.services.nginx.user;
+      "listen.owner" = Loco.User.Name;
+      #"listen.owner" = config.services.nginx.user;
       "pm.max_children" = 5;
       "pm.start_servers" = 2;
       "pm.min_spare_servers" = 1;
@@ -216,9 +206,7 @@
     };
   };
   networking.firewall.allowedTCPPorts = [ 80 443 ];
-  networking.extraHosts = ''
-      127.0.0.1 Test.test
-  '';
+  networking.hosts = Loco.Hosts;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -231,9 +219,6 @@
     enable = true;
     enableCompletion = true;
     autosuggestions.enable = true;
-    #interactiveShellInit = ''
-    #  export PATH=$PATH:/home/${(import ./configuration_loco.nix).UserName}/mnt/OutHouse/los/bin
-    #'';
     ohMyZsh = {
       enable = true;
       plugins = [ "git" ];
@@ -250,7 +235,7 @@
   # Download the configs: wget https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip
   # networking.enableIPv6 = false; # This may be needed ad NordVPN doesn't support IPv6
   services.openvpn.servers = let
-    LoginCreds = (import ./configuration_loco.nix).Nord;
+    LoginCreds = Loco.Nord;
   in {
     Nord = {
       config = '' config /root/.config/nixos/OpenVPN/Nord/ovpn_udp/us8525.nordvpn.com.udp.ovpn '';
