@@ -19,10 +19,10 @@ rec {
       "Test.test"
     ];
   };
-  AddVHost = Host: {
+  AddVHost = {Host, PublicDir ? false, PHPv ? config.services.phpfpm.pools.mypool.socket }: {
     listen = [ { addr = "127.0.0.1"; port = 80; } { addr = "127.0.0.1"; port = 8080; } ];
     serverName = "${Host}.test";
-    root = "/var/www/${Host}";
+    root = "/var/www/${Host}" + (if PublicDir != false then PublicDir else "");
     extraConfig = ''
 	  index = index.php index.html;
   	  error_log /var/log/nginx/${Host}/error.log debug;
@@ -32,11 +32,15 @@ rec {
 	  try_files $uri $uri/ /index.php?$query_string;
     '';
     locations."~ \.php$".extraConfig = ''
-	  fastcgi_pass  unix:${config.services.phpfpm.pools.mypool.socket};
+      fastcgi_pass  unix:${PHPv};
       fastcgi_index index.php;
     '';
   };
   VHosts = {
-    "Test" = AddVHost "Test";
+    "Test" = AddVHost {
+      Host = "AquaticDreams";
+      PublicDir = "/public";
+      PHPv = config.services.phpfpm.pools.my74pool.socket;
+    };
   };
 }

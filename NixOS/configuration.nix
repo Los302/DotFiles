@@ -186,7 +186,7 @@ in
   services.phpfpm.pools.mypool = let
     php =  pkgs.php.buildEnv {
       extensions = ({enabled, all}: with all; [
-        curl imagick pdo pdo_mysql mysqli mysqlnd
+        curl imagick mysqli mysqlnd openssl pdo pdo_mysql session
       ]);
       extraConfig = "memory_limit=2G";
     };
@@ -198,6 +198,27 @@ in
       pm = "dynamic";
       "listen.owner" = Loco.User.Name;
       #"listen.owner" = config.services.nginx.user;
+      "pm.max_children" = 5;
+      "pm.start_servers" = 2;
+      "pm.min_spare_servers" = 1;
+      "pm.max_spare_servers" = 3;
+      "pm.max_requests" = 500;
+    };
+  };
+  services.phpfpm.pools.my74pool = let
+    php =  pkgs.php74.buildEnv {
+      extensions = ({enabled, all}: with all; [
+        curl imagick json openssl pdo pdo_mysql mysqli mysqlnd session tokenizer
+      ]);
+      extraConfig = "memory_limit=2G";
+    };
+  in {
+    phpPackage = php;
+    user = Loco.User.Name;
+    group = Loco.User.Group;
+    settings = {
+      pm = "dynamic";
+      "listen.owner" = Loco.User.Name;
       "pm.max_children" = 5;
       "pm.start_servers" = 2;
       "pm.min_spare_servers" = 1;
