@@ -11,8 +11,11 @@ compinit
 # End of lines added by compinstall
 
 source ~/.nix-profile/etc/profile.d/hm-session-vars.sh
+eval "$(direnv hook zsh)"
 
 alias clearNeo="clear && neofetch"
 alias clearScreen="clear && screenfetch"
 alias cdOutHouse="cd /home/$USER/mnt/OutHouse/los"
+alias cdDotfiles="cd /home/$USER/mnt/OutHouse/los/.dotfiles"
+alias cdHtdocs="cd /home/$USER/Documents/htdocs"
 
