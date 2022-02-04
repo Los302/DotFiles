@@ -53,10 +53,12 @@ in
     screenfetch
     neofetch
     tmux
+    terminator #DreamHost doens't like alacritty
     fzf
     zoom-us
     skype
     unzip
+    slack
     #Web Dev
     google-chrome
     jetbrains.phpstorm
