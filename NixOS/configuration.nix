@@ -186,7 +186,7 @@ in
   services.phpfpm.pools.mypool = let
     php =  pkgs.php.buildEnv {
       extensions = ({enabled, all}: with all; [
-        curl imagick mysqli mysqlnd openssl pdo pdo_mysql session
+        curl fileinfo filter imagick mysqli mysqlnd openssl pdo pdo_mysql session tokenizer
       ]);
       extraConfig = "memory_limit=2G";
     };
@@ -208,7 +208,7 @@ in
   services.phpfpm.pools.my74pool = let
     php =  pkgs.php74.buildEnv {
       extensions = ({enabled, all}: with all; [
-        curl imagick json openssl pdo pdo_mysql mysqli mysqlnd session tokenizer
+        curl fileinfo filter imagick json openssl pdo pdo_mysql mysqli mysqlnd session tokenizer
       ]);
       extraConfig = "memory_limit=2G";
     };
